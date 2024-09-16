@@ -1,0 +1,988 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "73a7dcc0",
+   "metadata": {
+    "_cell_guid": "b1076dfc-b9ad-4769-8c92-a6c4dae69d19",
+    "_uuid": "8f2839f25d086af736a60e9eeb907d3b93b6e0e5",
+    "execution": {
+     "iopub.execute_input": "2024-09-16T19:41:48.872604Z",
+     "iopub.status.busy": "2024-09-16T19:41:48.872142Z",
+     "iopub.status.idle": "2024-09-16T19:41:51.730736Z",
+     "shell.execute_reply": "2024-09-16T19:41:51.729438Z"
+    },
+    "papermill": {
+     "duration": 2.871621,
+     "end_time": "2024-09-16T19:41:51.734118",
+     "exception": false,
+     "start_time": "2024-09-16T19:41:48.862497",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "import itertools\n",
+    "import numpy as np\n",
+    "import pandas as pd\n",
+    "import matplotlib.pyplot as plt\n",
+    "import seaborn as sns\n",
+    "\n",
+    "import statsmodels.stats.api as sms\n",
+    "from scipy.stats import ttest_1samp, shapiro, levene, ttest_ind, mannwhitneyu, \\\n",
+    "    pearsonr, spearmanr, kendalltau, f_oneway, kruskal\n",
+    "from statsmodels.stats.proportion import proportions_ztest"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "9ea3affd",
+   "metadata": {
+    "papermill": {
+     "duration": 0.006539,
+     "end_time": "2024-09-16T19:41:51.747979",
+     "exception": false,
+     "start_time": "2024-09-16T19:41:51.741440",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "\n",
+    "#####################################################\n",
+    "# Veri Seti Hikayesi\n",
+    "#####################################################\n",
+    "\n",
+    "# Bir firmanın web site bilgilerini içeren bu veri setinde kullanıcıların gördükleri ve tıkladıkları\n",
+    "# reklam sayıları gibi bilgilerin yanı sıra buradan gelen kazanç bilgileri yer almaktadır.Kontrol ve Test\n",
+    "# grubu olmak üzere iki ayrı veri seti vardır. Bu veri setleriab_testing.xlsxexcel’ininayrı sayfalarında yer\n",
+    "# almaktadır. Kontrol grubuna Maximum Bidding, test grubuna AverageBiddinguygulanmıştır.\n",
+    "\n",
+    "# impression: Reklam görüntüleme sayısı\n",
+    "# Click: Görüntülenen reklama tıklama sayısı\n",
+    "# Purchase: Tıklanan reklamlar sonrası satın alınan ürün sayısı\n",
+    "# Earning: Satın alınan ürünler sonrası elde edilen kazanç\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "a451a93d",
+   "metadata": {
+    "papermill": {
+     "duration": 0.007688,
+     "end_time": "2024-09-16T19:41:51.763083",
+     "exception": false,
+     "start_time": "2024-09-16T19:41:51.755395",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "1b238288",
+   "metadata": {
+    "papermill": {
+     "duration": 0.006575,
+     "end_time": "2024-09-16T19:41:51.776612",
+     "exception": false,
+     "start_time": "2024-09-16T19:41:51.770037",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "3c3b8015",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-16T19:41:51.793089Z",
+     "iopub.status.busy": "2024-09-16T19:41:51.792449Z",
+     "iopub.status.idle": "2024-09-16T19:41:52.268735Z",
+     "shell.execute_reply": "2024-09-16T19:41:52.267147Z"
+    },
+    "papermill": {
+     "duration": 0.488291,
+     "end_time": "2024-09-16T19:41:52.272156",
+     "exception": false,
+     "start_time": "2024-09-16T19:41:51.783865",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# Adım 1:  ab_testing_data.xlsx adlı kontrol ve test grubu verilerinden oluşan veri setini okutunuz.\n",
+    "#Kontrol ve test grubu verilerini ayrı değişkenlere atayınız.\n",
+    "\n",
+    "df1=pd.read_excel(\"/kaggle/input/ab-testing-data/ab_testing.xlsx\",sheet_name=\"Control Group\")\n",
+    "df2=pd.read_excel(\"/kaggle/input/ab-testing-data/ab_testing.xlsx\",sheet_name=\"Test Group\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "deb4ec69",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-16T19:41:52.288622Z",
+     "iopub.status.busy": "2024-09-16T19:41:52.287898Z",
+     "iopub.status.idle": "2024-09-16T19:41:52.316321Z",
+     "shell.execute_reply": "2024-09-16T19:41:52.314759Z"
+    },
+    "papermill": {
+     "duration": 0.040078,
+     "end_time": "2024-09-16T19:41:52.319507",
+     "exception": false,
+     "start_time": "2024-09-16T19:41:52.279429",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Impression</th>\n",
+       "      <th>Click</th>\n",
+       "      <th>Purchase</th>\n",
+       "      <th>Earning</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>82529.459271</td>\n",
+       "      <td>6090.077317</td>\n",
+       "      <td>665.211255</td>\n",
+       "      <td>2311.277143</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>98050.451926</td>\n",
+       "      <td>3382.861786</td>\n",
+       "      <td>315.084895</td>\n",
+       "      <td>1742.806855</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>82696.023549</td>\n",
+       "      <td>4167.965750</td>\n",
+       "      <td>458.083738</td>\n",
+       "      <td>1797.827447</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>109914.400398</td>\n",
+       "      <td>4910.882240</td>\n",
+       "      <td>487.090773</td>\n",
+       "      <td>1696.229178</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>108457.762630</td>\n",
+       "      <td>5987.655811</td>\n",
+       "      <td>441.034050</td>\n",
+       "      <td>1543.720179</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "      Impression        Click    Purchase      Earning\n",
+       "0   82529.459271  6090.077317  665.211255  2311.277143\n",
+       "1   98050.451926  3382.861786  315.084895  1742.806855\n",
+       "2   82696.023549  4167.965750  458.083738  1797.827447\n",
+       "3  109914.400398  4910.882240  487.090773  1696.229178\n",
+       "4  108457.762630  5987.655811  441.034050  1543.720179"
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df1.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "db231ccd",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-16T19:41:52.338577Z",
+     "iopub.status.busy": "2024-09-16T19:41:52.337512Z",
+     "iopub.status.idle": "2024-09-16T19:41:52.348594Z",
+     "shell.execute_reply": "2024-09-16T19:41:52.347217Z"
+    },
+    "papermill": {
+     "duration": 0.023536,
+     "end_time": "2024-09-16T19:41:52.351309",
+     "exception": false,
+     "start_time": "2024-09-16T19:41:52.327773",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "Impression    0\n",
+       "Click         0\n",
+       "Purchase      0\n",
+       "Earning       0\n",
+       "dtype: int64"
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df1.isnull().sum()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "9e7dbf55",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-16T19:41:52.368952Z",
+     "iopub.status.busy": "2024-09-16T19:41:52.367513Z",
+     "iopub.status.idle": "2024-09-16T19:41:52.402813Z",
+     "shell.execute_reply": "2024-09-16T19:41:52.401558Z"
+    },
+    "papermill": {
+     "duration": 0.046988,
+     "end_time": "2024-09-16T19:41:52.405570",
+     "exception": false,
+     "start_time": "2024-09-16T19:41:52.358582",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>count</th>\n",
+       "      <th>mean</th>\n",
+       "      <th>std</th>\n",
+       "      <th>min</th>\n",
+       "      <th>25%</th>\n",
+       "      <th>50%</th>\n",
+       "      <th>75%</th>\n",
+       "      <th>max</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>Impression</th>\n",
+       "      <td>40.0</td>\n",
+       "      <td>101711.449068</td>\n",
+       "      <td>20302.157862</td>\n",
+       "      <td>45475.942965</td>\n",
+       "      <td>85726.690349</td>\n",
+       "      <td>99790.701078</td>\n",
+       "      <td>115212.816543</td>\n",
+       "      <td>147539.336329</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>Click</th>\n",
+       "      <td>40.0</td>\n",
+       "      <td>5100.657373</td>\n",
+       "      <td>1329.985498</td>\n",
+       "      <td>2189.753157</td>\n",
+       "      <td>4124.304129</td>\n",
+       "      <td>5001.220602</td>\n",
+       "      <td>5923.803596</td>\n",
+       "      <td>7959.125069</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>Purchase</th>\n",
+       "      <td>40.0</td>\n",
+       "      <td>550.894059</td>\n",
+       "      <td>134.108201</td>\n",
+       "      <td>267.028943</td>\n",
+       "      <td>470.095533</td>\n",
+       "      <td>531.206307</td>\n",
+       "      <td>637.957088</td>\n",
+       "      <td>801.795020</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>Earning</th>\n",
+       "      <td>40.0</td>\n",
+       "      <td>1908.568300</td>\n",
+       "      <td>302.917783</td>\n",
+       "      <td>1253.989525</td>\n",
+       "      <td>1685.847205</td>\n",
+       "      <td>1975.160522</td>\n",
+       "      <td>2119.802784</td>\n",
+       "      <td>2497.295218</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "            count           mean           std           min           25%  \\\n",
+       "Impression   40.0  101711.449068  20302.157862  45475.942965  85726.690349   \n",
+       "Click        40.0    5100.657373   1329.985498   2189.753157   4124.304129   \n",
+       "Purchase     40.0     550.894059    134.108201    267.028943    470.095533   \n",
+       "Earning      40.0    1908.568300    302.917783   1253.989525   1685.847205   \n",
+       "\n",
+       "                     50%            75%            max  \n",
+       "Impression  99790.701078  115212.816543  147539.336329  \n",
+       "Click        5001.220602    5923.803596    7959.125069  \n",
+       "Purchase      531.206307     637.957088     801.795020  \n",
+       "Earning      1975.160522    2119.802784    2497.295218  "
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df1.describe().T"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "0796b394",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-16T19:41:52.423220Z",
+     "iopub.status.busy": "2024-09-16T19:41:52.422735Z",
+     "iopub.status.idle": "2024-09-16T19:41:52.438401Z",
+     "shell.execute_reply": "2024-09-16T19:41:52.436897Z"
+    },
+    "papermill": {
+     "duration": 0.027589,
+     "end_time": "2024-09-16T19:41:52.440945",
+     "exception": false,
+     "start_time": "2024-09-16T19:41:52.413356",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Impression</th>\n",
+       "      <th>Click</th>\n",
+       "      <th>Purchase</th>\n",
+       "      <th>Earning</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>120103.503796</td>\n",
+       "      <td>3216.547958</td>\n",
+       "      <td>702.160346</td>\n",
+       "      <td>1939.611243</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>134775.943363</td>\n",
+       "      <td>3635.082422</td>\n",
+       "      <td>834.054286</td>\n",
+       "      <td>2929.405820</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>107806.620788</td>\n",
+       "      <td>3057.143560</td>\n",
+       "      <td>422.934258</td>\n",
+       "      <td>2526.244877</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>116445.275526</td>\n",
+       "      <td>4650.473911</td>\n",
+       "      <td>429.033535</td>\n",
+       "      <td>2281.428574</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>145082.516838</td>\n",
+       "      <td>5201.387724</td>\n",
+       "      <td>749.860442</td>\n",
+       "      <td>2781.697521</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "      Impression        Click    Purchase      Earning\n",
+       "0  120103.503796  3216.547958  702.160346  1939.611243\n",
+       "1  134775.943363  3635.082422  834.054286  2929.405820\n",
+       "2  107806.620788  3057.143560  422.934258  2526.244877\n",
+       "3  116445.275526  4650.473911  429.033535  2281.428574\n",
+       "4  145082.516838  5201.387724  749.860442  2781.697521"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df2.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "96e6ce41",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-16T19:41:52.459707Z",
+     "iopub.status.busy": "2024-09-16T19:41:52.459176Z",
+     "iopub.status.idle": "2024-09-16T19:41:52.468926Z",
+     "shell.execute_reply": "2024-09-16T19:41:52.467836Z"
+    },
+    "papermill": {
+     "duration": 0.023451,
+     "end_time": "2024-09-16T19:41:52.472437",
+     "exception": false,
+     "start_time": "2024-09-16T19:41:52.448986",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "Impression    0\n",
+       "Click         0\n",
+       "Purchase      0\n",
+       "Earning       0\n",
+       "dtype: int64"
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df2.isnull().sum()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "e0b8fe41",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-16T19:41:52.492005Z",
+     "iopub.status.busy": "2024-09-16T19:41:52.490686Z",
+     "iopub.status.idle": "2024-09-16T19:41:52.518948Z",
+     "shell.execute_reply": "2024-09-16T19:41:52.517445Z"
+    },
+    "papermill": {
+     "duration": 0.041481,
+     "end_time": "2024-09-16T19:41:52.522106",
+     "exception": false,
+     "start_time": "2024-09-16T19:41:52.480625",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>count</th>\n",
+       "      <th>mean</th>\n",
+       "      <th>std</th>\n",
+       "      <th>min</th>\n",
+       "      <th>25%</th>\n",
+       "      <th>50%</th>\n",
+       "      <th>75%</th>\n",
+       "      <th>max</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>Impression</th>\n",
+       "      <td>40.0</td>\n",
+       "      <td>120512.411758</td>\n",
+       "      <td>18807.448712</td>\n",
+       "      <td>79033.834921</td>\n",
+       "      <td>112691.970770</td>\n",
+       "      <td>119291.300775</td>\n",
+       "      <td>132050.578933</td>\n",
+       "      <td>158605.920483</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>Click</th>\n",
+       "      <td>40.0</td>\n",
+       "      <td>3967.549761</td>\n",
+       "      <td>923.095073</td>\n",
+       "      <td>1836.629861</td>\n",
+       "      <td>3376.819024</td>\n",
+       "      <td>3931.359804</td>\n",
+       "      <td>4660.497911</td>\n",
+       "      <td>6019.695079</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>Purchase</th>\n",
+       "      <td>40.0</td>\n",
+       "      <td>582.106097</td>\n",
+       "      <td>161.152513</td>\n",
+       "      <td>311.629515</td>\n",
+       "      <td>444.626828</td>\n",
+       "      <td>551.355732</td>\n",
+       "      <td>699.862360</td>\n",
+       "      <td>889.910460</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>Earning</th>\n",
+       "      <td>40.0</td>\n",
+       "      <td>2514.890733</td>\n",
+       "      <td>282.730852</td>\n",
+       "      <td>1939.611243</td>\n",
+       "      <td>2280.537426</td>\n",
+       "      <td>2544.666107</td>\n",
+       "      <td>2761.545405</td>\n",
+       "      <td>3171.489708</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "            count           mean           std           min            25%  \\\n",
+       "Impression   40.0  120512.411758  18807.448712  79033.834921  112691.970770   \n",
+       "Click        40.0    3967.549761    923.095073   1836.629861    3376.819024   \n",
+       "Purchase     40.0     582.106097    161.152513    311.629515     444.626828   \n",
+       "Earning      40.0    2514.890733    282.730852   1939.611243    2280.537426   \n",
+       "\n",
+       "                      50%            75%            max  \n",
+       "Impression  119291.300775  132050.578933  158605.920483  \n",
+       "Click         3931.359804    4660.497911    6019.695079  \n",
+       "Purchase       551.355732     699.862360     889.910460  \n",
+       "Earning       2544.666107    2761.545405    3171.489708  "
+      ]
+     },
+     "execution_count": 8,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df2.describe().T"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "685c6874",
+   "metadata": {
+    "papermill": {
+     "duration": 0.007635,
+     "end_time": "2024-09-16T19:41:52.537961",
+     "exception": false,
+     "start_time": "2024-09-16T19:41:52.530326",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "#####################################################\n",
+    "# Görev 2:  A/B Testinin Hipotezinin Tanımlanması\n",
+    "#####################################################\n",
+    "\n",
+    "# Adım 1: Hipotezi tanımlayınız.\n",
+    "\n",
+    "#H0: M1 = M2 (İki grup arasında fark yoktur.)   p-value < 0.05'ten küçük ise H0 Red.\n",
+    "\n",
+    "#H1: M1 != M2 (İki grup arasında fark vardır.)  p-value > 0.05'ten büyük ise H0 Reddedilemez.\n",
+    "\n",
+    "# Adım 2: Varsayım Kontrolü \n",
+    "\n",
+    "#Normallik Varsayımı --> Shapiro Testi ile yapılır. --> Veri setinin normal dağılıma uygun olup olmadığını kontrol eder.\n",
+    "#Varyans Homojenliği --> Levene testi ile yapılır. --> İki grup arasında varyans eşitliğini kontrol eder.\n",
+    "\n",
+    "# Adım 3: Hipotezlerin Kontrolü\n",
+    "\n",
+    "#Varsayımlar sağlanıyorsa bağımsız iki örneklem t-testi(parametrik) ---> ttest-ind ile yapılır.\n",
+    "#Varsayımlar sağlanmıyorsa mannwitheyu testi ile yapılır(non-parametrik).\n",
+    "Buradan çıkan p-value değerine göre yorum yaparız.\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "bb608fea",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-16T19:41:52.556403Z",
+     "iopub.status.busy": "2024-09-16T19:41:52.555897Z",
+     "iopub.status.idle": "2024-09-16T19:41:52.564324Z",
+     "shell.execute_reply": "2024-09-16T19:41:52.562835Z"
+    },
+    "papermill": {
+     "duration": 0.02119,
+     "end_time": "2024-09-16T19:41:52.567099",
+     "exception": false,
+     "start_time": "2024-09-16T19:41:52.545909",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "550.8940587702316\n",
+      "582.1060966484677\n"
+     ]
+    }
+   ],
+   "source": [
+    "\n",
+    "#  Kontrol ve test grubu için purchase(kazanç) ortalamalarını analiz ediniz\n",
+    "print(df1[\"Purchase\"].mean())\n",
+    "print(df2[\"Purchase\"].mean())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ae7e77fe",
+   "metadata": {
+    "papermill": {
+     "duration": 0.007802,
+     "end_time": "2024-09-16T19:41:52.583066",
+     "exception": false,
+     "start_time": "2024-09-16T19:41:52.575264",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "#####################################################\n",
+    "# GÖREV 3: Hipotez Testinin Gerçekleştirilmesi\n",
+    "#####################################################\n",
+    "\n",
+    "######################################################\n",
+    "# AB Testing (Bağımsız İki Örneklem T Testi)\n",
+    "######################################################\n",
+    "\n",
+    "\n",
+    "# Adım 1: Hipotez testi yapılmadan önce varsayım kontrollerini yapınız.Bunlar Normallik Varsayımı ve Varyans Homojenliğidir. \n",
+    "\n",
+    "# Kontrol ve test grubunun normallik varsayımına uyup uymadığını Purchase değişkeni üzerinden ayrı ayrı test ediniz. \n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "0e6e6c7b",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-16T19:41:52.601343Z",
+     "iopub.status.busy": "2024-09-16T19:41:52.600855Z",
+     "iopub.status.idle": "2024-09-16T19:41:52.609741Z",
+     "shell.execute_reply": "2024-09-16T19:41:52.608309Z"
+    },
+    "papermill": {
+     "duration": 0.021977,
+     "end_time": "2024-09-16T19:41:52.612995",
+     "exception": false,
+     "start_time": "2024-09-16T19:41:52.591018",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Test Stat= 0.9773,p-value=0.5891\n"
+     ]
+    }
+   ],
+   "source": [
+    "\n",
+    "####----Normallik Varsayımı-Kontrol Grubu İçin----- ####\n",
+    "test_stat,pvalue=shapiro(df1[\"Purchase\"])\n",
+    "print(\"Test Stat= %.4f,p-value=%.4f\" % (test_stat,pvalue))\n",
+    "#p,0.05'ten büyük olduğu için H0:reddedilemez. Varsayımlar sağlanıyor."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "6995bc22",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-16T19:41:52.631716Z",
+     "iopub.status.busy": "2024-09-16T19:41:52.631264Z",
+     "iopub.status.idle": "2024-09-16T19:41:52.640162Z",
+     "shell.execute_reply": "2024-09-16T19:41:52.638409Z"
+    },
+    "papermill": {
+     "duration": 0.021662,
+     "end_time": "2024-09-16T19:41:52.643022",
+     "exception": false,
+     "start_time": "2024-09-16T19:41:52.621360",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Test Stat= 0.9589,p-value=0.1541\n"
+     ]
+    }
+   ],
+   "source": [
+    "####----Normallik Varsayımı-Test Grubu İçin----- ####\n",
+    "test_stat,pvalue=shapiro(df2[\"Purchase\"])\n",
+    "print(\"Test Stat= %.4f,p-value=%.4f\" % (test_stat,pvalue))\n",
+    "#p,0.05'ten büyük olduğu için H0:reddedilemez. Varsayımlar sağlanıyor."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "id": "cadf94a7",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-16T19:41:52.661695Z",
+     "iopub.status.busy": "2024-09-16T19:41:52.661233Z",
+     "iopub.status.idle": "2024-09-16T19:41:52.673950Z",
+     "shell.execute_reply": "2024-09-16T19:41:52.672562Z"
+    },
+    "papermill": {
+     "duration": 0.025498,
+     "end_time": "2024-09-16T19:41:52.676856",
+     "exception": false,
+     "start_time": "2024-09-16T19:41:52.651358",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Test Stat= 0.9589,p-value=0.1083\n"
+     ]
+    }
+   ],
+   "source": [
+    "#### ---Varyans Homojenliği --- ###\n",
+    "test_Stat,pvalue=levene(df2[\"Purchase\"],df1[\"Purchase\"])\n",
+    "print(\"Test Stat= %.4f,p-value=%.4f\" % (test_stat,pvalue))\n",
+    "\n",
+    "##0.05'ten büyük olduğu için H0 reddedilemez. Varyanslar homojendir."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "0501de25",
+   "metadata": {
+    "papermill": {
+     "duration": 0.008335,
+     "end_time": "2024-09-16T19:41:52.693595",
+     "exception": false,
+     "start_time": "2024-09-16T19:41:52.685260",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# Adım 2: Normallik Varsayımı ve Varyans Homojenliği sonuçlarına göre uygun testi seçiniz."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "id": "27ee16b6",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-16T19:41:52.713880Z",
+     "iopub.status.busy": "2024-09-16T19:41:52.712405Z",
+     "iopub.status.idle": "2024-09-16T19:41:52.725919Z",
+     "shell.execute_reply": "2024-09-16T19:41:52.724099Z"
+    },
+    "papermill": {
+     "duration": 0.026474,
+     "end_time": "2024-09-16T19:41:52.728784",
+     "exception": false,
+     "start_time": "2024-09-16T19:41:52.702310",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Test Stat= -0.9416,p-value=0.3493\n"
+     ]
+    }
+   ],
+   "source": [
+    "### Normallik varsayımını sağladığı için bağımsız iki örneklem t-testi(parametrik) uygulanmaktadır.\n",
+    "## Varyans homojenliği sağlandığı için equal_var değeri True olarak seçilir.\n",
+    "\n",
+    "test_stat,pvalue=ttest_ind(df1[\"Purchase\"],df2[\"Purchase\"],\n",
+    "                        equal_var=True)\n",
+    "print(\"Test Stat= %.4f,p-value=%.4f\" % (test_stat,pvalue))\n",
+    "\n",
+    "## P , 0.05'ten büyük olduğu için H0:reddedilemez. Bu yüzden iki grup arasında fark yoktur."
+   ]
+  }
+ ],
+ "metadata": {
+  "kaggle": {
+   "accelerator": "none",
+   "dataSources": [
+    {
+     "datasetId": 5717821,
+     "sourceId": 9415074,
+     "sourceType": "datasetVersion"
+    }
+   ],
+   "dockerImageVersionId": 30761,
+   "isGpuEnabled": false,
+   "isInternetEnabled": true,
+   "language": "python",
+   "sourceType": "notebook"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.14"
+  },
+  "papermill": {
+   "default_parameters": {},
+   "duration": 8.108109,
+   "end_time": "2024-09-16T19:41:53.562820",
+   "environment_variables": {},
+   "exception": null,
+   "input_path": "__notebook__.ipynb",
+   "output_path": "__notebook__.ipynb",
+   "parameters": {},
+   "start_time": "2024-09-16T19:41:45.454711",
+   "version": "2.6.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
